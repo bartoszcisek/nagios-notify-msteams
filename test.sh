@@ -2,7 +2,7 @@
 # export some test values that Nagios would have sent us via environment variables.
 
 # COMMON to both HOST and SERVICE
-export NAGIOS__CONTACTWEBHOOKURL="https://your-connector-url-here/"
+export NAGIOS__CONTACTWEBHOOKFILE="hook-test-file"
 # state_color value is from MS-Teams Adaptive Card styling.
 #export NAGIOS_state_color="good"
 

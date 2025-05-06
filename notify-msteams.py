@@ -51,6 +51,26 @@ def send_to_teams(url, message_json, debug):
             print('failure: {}'.format(r.reason))
         return False
 
+def get_webhook_url(macros):
+    """ get webhook url from file or from macro directly"""
+    url = macros.get('_CONTACTWEBHOOKURL')
+    if url is not None:
+        return url
+    path = macros.get('_CONTACTWEBHOOKFILE')
+    if path is None:
+        print('ERROR: no ms-teams webhook url or file was found')
+        exit(2)
+    if not os.path.exists(path):
+        print('ERROR: webhook url file does not exist')
+        exit(2)
+    with open(path, 'r') as f:
+        url = f.read().strip()
+    if url is None:
+        print("ERROR: no ms-teams webhook url was found in {}".format(path))
+        exit(2)
+    else:
+        return url
+
 def main():
     """receive nagios environment data and send notifications via MS-Teams"""
 
@@ -62,7 +82,7 @@ def main():
     message_type = parsedArgs.msgtype
     debug = parsedArgs.debug
     macros = _get_nagios_macros()
-    url = macros.get('_CONTACTWEBHOOKURL')
+    url = get_webhook_url(macros)
     # verify url defined
     if url is None:
         # error no url
