@@ -27,6 +27,23 @@ nag_template = {
     # 'SERVICE' : 'service_simple.json.jinja',
 }
 
+
+class KVdictAppendAction(argparse.Action):
+    """
+    argparse action to split an argument into KEY=VALUE form
+    on the first = and append to a dictionary.
+    """
+    def __call__(self, parser, args, values, option_string=None):
+        assert(len(values) == 1)
+        try:
+            (k, v) = values[0].split("=", 1)
+        except ValueError as ex:
+            raise argparse.ArgumentError(self, f"could not parse argument \"{values[0]}\" as k=v format")
+        d = getattr(args, self.dest) or {}
+        d[k] = v
+        setattr(args, self.dest, d)
+
+
 def _get_nagios_macros():
     """Read all ENV vars then save and rename the Nagios Macros in a dictionary."""
     MACROS=dict()
@@ -57,11 +74,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('msgtype', action='store', help='message subject')
     parser.add_argument('--debug', action='store_true', help='print json message, etc. for debugging')
+    parser.add_argument('-f', '--field', action=KVdictAppendAction, nargs=1, type=str, help='nagios macro field to use')
     parsedArgs = parser.parse_args()
 
     message_type = parsedArgs.msgtype
     debug = parsedArgs.debug
     macros = _get_nagios_macros()
+
+    nagios_fields = parsedArgs.field
+    macros.update(nagios_fields)
+
     url = macros.get('_CONTACTWEBHOOKURL')
     # verify url defined
     if url is None:
